@@ -28,32 +28,30 @@ class Server
 	{
 		try
 		{
-			IPEndPoint clientEndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
-			Console.WriteLine($"IP-адрес клиента: {clientEndPoint.Address}, Порт клиента: {clientEndPoint.Port}");
-
 			NetworkStream stream = client.GetStream();
 			byte[] buffer = new byte[256];
+			int bytesRead;
 
-			while (true)
+			while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
 			{
-				int bytesRead = stream.Read(buffer, 0, buffer.Length);
-				if (bytesRead == 0)
-				{
-					Console.WriteLine("Клиент закрыл соединение.");
-					break;
-				}
+				// Обработка полученных данных
 				string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-				Console.WriteLine($"Полученное сообщение: {message}");
+				Console.WriteLine("Получено сообщение: " + message);
+
+				// Отправка данных обратно клиенту
+				byte[] response = Encoding.UTF8.GetBytes(message);
+				stream.Write(response, 0, response.Length);
 			}
 		}
-		catch (Exception e)
+		catch (Exception ex)
 		{
-			Console.WriteLine($"Ошибка при обработке клиента: {e.Message}");
+			Console.WriteLine("Ошибка: " + ex.Message);
 		}
 		finally
 		{
+			// Закрытие клиента и освобождение ресурсов
 			client.Close();
-			Console.WriteLine("Соединение с клиентом закрыто.");
+			Console.WriteLine("Клиент отключился.");
 		}
 	}
 }
