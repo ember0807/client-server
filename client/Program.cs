@@ -6,27 +6,53 @@ class Client
 {
 	static void Main(string[] args)
 	{
+		string clientId;
+
+		if (args.Length < 1)
+		{
+			Console.Write("Пожалуйста, введите идентификатор клиента: ");
+			clientId = Console.ReadLine();
+		}
+		else
+		{
+			clientId = args[0]; // Идентификатор клиента
+		}
+
 		int port = 5000;
 
-		// Устанавливаем соединение с сервером
+		ConnectToServer(clientId, port);
+	}
+
+	static void ConnectToServer(string clientId, int port)
+	{
 		try
 		{
 			using (TcpClient client = new TcpClient("127.0.0.1", port))
 			{
-				Console.WriteLine("Клиент подключён к серверу.");
-
-				// Ввод сообщения с клавиатуры
-				Console.Write("Введите сообщение для отправки на сервер: ");
-				string message = Console.ReadLine();
-				byte[] data = Encoding.UTF8.GetBytes(message);
-
-				// Отправка сообщения на сервер
+				Console.WriteLine($"{clientId} подключён к серверу.");
 				NetworkStream stream = client.GetStream();
-				stream.Write(data, 0, data.Length);
-				Console.WriteLine("Сообщение отправлено: {0}", message);
 
-				// Закрываем соединение
+				while (true)
+				{
+					Console.Write($"{clientId}, введите сообщение для отправки на сервер (или 'exit' для выхода): ");
+					string message = Console.ReadLine();
+
+					if (message.ToLower() == "exit")
+					{
+						break; // Выход из цикла, если введено "exit"
+					}
+
+					// Формируем сообщение с идентификатором клиента
+					string formattedMessage = $"{clientId}: {message}";
+					byte[] data = Encoding.UTF8.GetBytes(formattedMessage);
+
+					// Отправка сообщения на сервер
+					stream.Write(data, 0, data.Length);
+					Console.WriteLine($"{clientId} отправлено сообщение: {message}");
+				}
+
 				stream.Close();
+				Console.WriteLine($"{clientId} соединение с сервером закрыто.");
 			}
 		}
 		catch (Exception e)
