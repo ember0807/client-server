@@ -21,15 +21,16 @@ class Server
 		while (true)
 		{
 			TcpClient client = server.AcceptTcpClient();
-			Console.WriteLine("Клиент подключился.");
+			DateTime connectionTime = DateTime.Now; // Время подключения
+			Console.WriteLine($"Клиент подключился. Время подключения: {connectionTime}");
 			clients.Add(client); // Добавляем клиента в список
 			DisplayConnectedClients(); // Отображаем количество подключенных клиентов
 
-			Task.Run(() => HandleClient(client));
+			Task.Run(() => HandleClient(client, connectionTime));
 		}
 	}
 
-	static void HandleClient(TcpClient client)
+	static void HandleClient(TcpClient client, DateTime connectionTime)
 	{
 		try
 		{
@@ -40,7 +41,9 @@ class Server
 			while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
 			{
 				string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-				Console.WriteLine("Получено сообщение: " + message);
+				DateTime messageTime = DateTime.Now; // Время получения сообщения
+				Console.WriteLine($"Получено сообщение: '{message}' в {messageTime}");
+
 				byte[] response = Encoding.UTF8.GetBytes(message);
 				stream.Write(response, 0, response.Length);
 			}
@@ -51,9 +54,10 @@ class Server
 		}
 		finally
 		{
+			DateTime disconnectionTime = DateTime.Now; // Время отключения
 			client.Close();
 			clients.Remove(client); // Удаляем клиента из списка
-			Console.WriteLine("Клиент отключился.");
+			Console.WriteLine($"Клиент отключился. Время отключения: {disconnectionTime}");
 			DisplayConnectedClients(); // Обновляем количество подключенных клиентов
 		}
 	}
